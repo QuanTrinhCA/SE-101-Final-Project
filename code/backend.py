@@ -46,10 +46,10 @@ def unpause_audio_stream(player):
 def set_audio_stream_volume(player, volume):
     player.audio_set_volume(volume)
 
-def audio_backend(child_conn):
+def audio_backend(conn_to_main):
     player = init_vlc_player()
     while True:
-        order = child_conn.recv()
+        order = conn_to_main.recv()
         if (order['action'] == 'unpause'):
             unpause_audio_stream(player=player)
             continue
