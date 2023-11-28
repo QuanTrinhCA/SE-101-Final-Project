@@ -1,7 +1,6 @@
 from multiprocessing import Process, Pipe
 from backend import audio_backend
 from emotiondection import emotion_detect
-from time import sleep
 
 if __name__ == '__main__':
     conn_to_audio_backend,conn_to_main = Pipe()
@@ -11,14 +10,23 @@ if __name__ == '__main__':
     backend_process = Process(target=emotion_detect, args=(conn_to_main,))
     backend_process.start()
     conn_to_audio_backend.send({'action': 'set_new_mood', 'mood': 'happy'})
-    sleep(20)
-    conn_to_audio_backend.send({'action': 'pause'})
-    sleep(5)
-    conn_to_audio_backend.send({'action': 'unpause'})
-    sleep(5)
-    conn_to_audio_backend.send({'action': 'set_volume', 'volume': 50})
-    sleep(5)
-    conn_to_audio_backend.send({'action': 'set_volume', 'volume': 0})
-    sleep(5)
-    conn_to_audio_backend.send({'action': 'set_volume', 'volume': 100})
-    sleep(100000)
+    while True:
+        # Receiving info
+        if conn_to_audio_backend.poll():
+            info = conn_to_audio_backend.recv()
+            for key in info:
+                if (key == 'position'):
+                    print(info[key])
+                    # Send to UI
+                if (key == 'title'):
+                    print(info[key])
+                    # Send to UI
+                if (key == 'thumbnailurl'):
+                    print(info[key])
+                    # Send to UI
+                if (key == 'length'):
+                    print(info[key])
+                    # Send to UI
+                if (key == 'artist'):
+                    print(info[key])
+                    # Send to UI
