@@ -16,13 +16,15 @@ if __name__ == '__main__':
     conn_to_emotion_detection.send({'action': 'get_emotion'})
     emotion = ''
     position = -1
+    enddecting = False
+    shouldnextsong = True
     while True:
-        if (emotion != ''):
-            if (position == -1):
-                conn_to_audio_backend.send({'action': 'set_new_mood', 'mood': emotion})
-                emotion = ''
-                continue
-
+        if (emotion != '' and shouldnextsong):
+            conn_to_audio_backend.send({'action': 'set_new_mood', 'mood': emotion})
+            emotion = ''
+            enddecting = False
+            continue
+                
         # Receiving info
         if conn_to_audio_backend.poll():
             info = conn_to_audio_backend.recv()
@@ -30,8 +32,11 @@ if __name__ == '__main__':
             for key in info:
                 if (key == 'position'):
                     position = info[key]
-                    if (position > 0.9):
+                    if (position > 0.9 and enddecting == False):
                         conn_to_emotion_detection.send({'action': 'get_emotion'})
+                        enddecting = True
+                    if (position == -1 or position == 1):
+                        shouldnextsong = True
                     sending_info['position'] = position
                 if (key == 'title'):
                     sending_info['title'] = info[key]
@@ -49,6 +54,12 @@ if __name__ == '__main__':
                     emotion = info[key]
         if conn_to_ui.poll():
             order = conn_to_ui.recv()
+            if (order['action'] == 'next_song'):
+                conn_to_audio_backend.send({'action': 'pause'})
+                conn_to_emotion_detection.send({'action': 'get_emotion'})
+                enddecting = True
+                shouldnextsong = True
+
             sending_info = {'action': order['action']}
             if (order['action'] == 'set_volume'):
                 sending_info['volume'] = order['volume']

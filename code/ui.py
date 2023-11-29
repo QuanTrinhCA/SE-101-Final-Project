@@ -13,7 +13,7 @@ class App:
         self.conn_to_main = conn_to_main
 
         image = Image.open(os.path.dirname(os.path.realpath(__file__)) + "\\not_loaded.gif")  # Replace "music_icon.png" with your image file
-        image = image.resize((300, 150))
+        image = image.resize((300, 300))
         self.photo = ImageTk.PhotoImage(image)
 
         self.create_widgets()
@@ -40,6 +40,9 @@ class App:
                                 'volume': volume})
         print(volume)
 
+    def nextSong(self):
+        self.conn_to_main.send({'action': 'next_song'})
+
     def pauseAudio(self):
         self.conn_to_main.send({'action': 'pause'})
 
@@ -62,7 +65,7 @@ class App:
         self.pause_button = tk.Button(self.root, text="Pause", command=self.pauseAudio, width=8, padx=5, pady=5)
         self.pause_button.pack(side=tk.LEFT, padx=5)
 
-        self.next_button = tk.Button(self.root, text="Next", width=8, padx=5, pady=5)
+        self.next_button = tk.Button(self.root, text="Next", command=self.nextSong, width=8, padx=5, pady=5)
         self.next_button.pack(side=tk.LEFT, padx=5)
 
         self.like_button = tk.Button(self.root, text="Like", width=8, padx=5, pady=5)
