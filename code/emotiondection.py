@@ -2,7 +2,6 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import cv2
 from deepface import DeepFace
-from time import sleep
 
 def emotion_detect(conn_to_main):
     # Classifier gives (x,y), width and height
@@ -16,7 +15,10 @@ def emotion_detect(conn_to_main):
         if (conn_to_main.poll()):
             order = conn_to_main.recv()
             if (order['action'] == 'get_emotion'):
-                frame = cap.read()
+                ret, frame = cap.read()
+                # RGB to grayscale then pass to classifier
+                frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                faces = face_classifier.detectMultiScale(frame_gray)
 
                 # Give deepface an image so that it returns an emotion
                 response = DeepFace.analyze(frame, actions=("emotion",), enforce_detection=False)
