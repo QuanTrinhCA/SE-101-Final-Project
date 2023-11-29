@@ -23,6 +23,9 @@ class App:
         self.song_name_label.config(text=title)
 
     def updateProgress(self, progress):
+        self.progressbar.config(value=progress * 100)
+
+    def changeProgress(self, value):
         return
     
     def updateThumbnail(self, url):
@@ -58,6 +61,13 @@ class App:
         # Text label for song name
         self.song_name_label = tk.Label(self.root, text="YOUR MOM", font=("Arial", 25))
         self.song_name_label.pack(pady=30)
+
+        self.progressbar = ttk.Progressbar(self.root,
+                                           value=0,
+                                           mode="determinate",
+                                           orient="horizontal",
+                                           length=700)
+        self.progressbar.pack(padx=10, pady=10)
 
         # Create buttons
         self.play_button = tk.Button(self.root, text="Play", command=self.unpauseAudio, width=8, padx=5, pady=5)

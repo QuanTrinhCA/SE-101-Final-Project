@@ -59,8 +59,11 @@ if __name__ == '__main__':
                 conn_to_emotion_detection.send({'action': 'get_emotion'})
                 enddecting = True
                 shouldnextsong = True
+                continue
 
             sending_info = {'action': order['action']}
             if (order['action'] == 'set_volume'):
                 sending_info['volume'] = order['volume']
+            elif (order['action'] == 'set_position'):
+                sending_info['position'] = order['position']
             conn_to_audio_backend.send(sending_info)

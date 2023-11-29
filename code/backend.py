@@ -73,6 +73,9 @@ class AudioBackend:
 
     def get_stream_position(self):
         return self.player.get_position()
+    
+    def set_stream_position(self, position):
+        self.player.set_position(position)
 
 def audio_backend(conn_to_main):
     backend = AudioBackend(conn_to_main=conn_to_main)
@@ -103,3 +106,5 @@ def audio_backend(conn_to_main):
                                    'position': backend.get_stream_position()})
             elif (order['action'] == 'set_volume'):
                 backend.set_audio_stream_volume(volume=order['volume'])
+            elif (order['action'] == 'set_position'):
+                backend.set_stream_position(order['position'])
