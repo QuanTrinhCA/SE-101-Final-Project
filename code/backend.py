@@ -1,12 +1,26 @@
 import vlc, ytmusicapi, yt_dlp, random
 
+# with ytmusicapi.YTMusic() as ytmusic:
+#     test = ytmusic.get_mood_categories()
+#     print(test)
+
 def find_song_based_on_mood(mood):
     mood_index = 0
     with ytmusicapi.YTMusic() as ytmusic:
         if mood == 'happy':
+            mood_index = 8
+        elif mood == 'sad':
+            mood_index = 11
+        elif mood == 'surprise':
+            mood_index = 1
+        elif mood == 'neutral':
+            mood_index = 4
+        elif mood == 'angry':
+            mood_index = 1
+        elif mood == 'disgust':
             mood_index = 5
-        elif mood == 'ur mom':
-            mood_index = 69
+        elif mood == 'fear':
+            mood_index = 7
         playlistlist = ytmusic.get_mood_playlists(params=ytmusic.get_mood_categories()["Moods & moments"][mood_index]['params'])
         luckyplaylist = ytmusic.get_playlist(playlistId=playlistlist[random.randint(0,len(playlistlist) - 1)]['playlistId'])
         luckysong = luckyplaylist['tracks'][random.randint(0, len(luckyplaylist['tracks']) - 1)]
