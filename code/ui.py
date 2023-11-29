@@ -1,6 +1,8 @@
+import os
 import tkinter as tk
 from tkinter import ttk
-#from PIL import Image, ImageTk
+from PIL import Image, ImageTk
+import requests
 
 class App:
     def __init__(self, root, conn_to_main):
@@ -10,10 +12,9 @@ class App:
 
         self.conn_to_main = conn_to_main
 
-        # Load the image
-        #image = Image.open("music_icon.png")  # Replace "music_icon.png" with your image file
-        #image = image.resize((300, 150), Image.ANTIALIAS)
-        #self.photo = ImageTk.PhotoImage(image)
+        image = Image.open(os.path.dirname(os.path.realpath(__file__)) + "\\not_loaded.gif")  # Replace "music_icon.png" with your image file
+        image = image.resize((300, 150))
+        self.photo = ImageTk.PhotoImage(image)
 
         self.create_widgets()
 
@@ -23,8 +24,21 @@ class App:
     def updateProgress(self, progress):
         return
     
+    def updateThumbnail(self, url):
+        # Load the image
+        image = Image.open(requests.get(url, stream=True).raw)  # Replace "music_icon.png" with your image file
+        image = image.resize((300, 150))
+        self.photo = ImageTk.PhotoImage(image)
+        self.image_label.config(image=self.photo)
+    
     def updateVolume(self, volume):
         self.volume_slider.config(value=volume)
+
+    def changeVolume(self, value):     
+        volume = round(float(value))       
+        self.conn_to_main.send({'action': 'set_volume',
+                                'volume': volume})
+        print(volume)
 
     def pauseAudio(self):
         self.conn_to_main.send({'action': 'pause'})
@@ -34,8 +48,8 @@ class App:
 
     def create_widgets(self):
         # Display the image at the top
-        #image_label = tk.Label(self.root, image=self.photo)
-        #image_label.pack(pady=10)
+        self.image_label = tk.Label(self.root, image=self.photo)
+        self.image_label.pack(pady=10)
 
         # Text label for song name
         self.song_name_label = tk.Label(self.root, text="YOUR MOM", font=("Arial", 25))
@@ -57,8 +71,7 @@ class App:
         self.dislike_button = tk.Button(self.root, text="Dislike", width=8, padx=5, pady=5)
         self.dislike_button.pack(side=tk.LEFT, padx=5)
 
-        self.volume_slider = ttk.Scale(self.root, from_=0, to=100, orient="vertical", length=200)
-        self.volume_slider.set(0.5)
+        self.volume_slider = ttk.Scale(self.root, from_=100, to=0, value=100, command=self.changeVolume, orient="vertical", length=200)
         self.volume_slider.pack(side=tk.RIGHT, padx=10, pady=7)
 
         # Create status label
@@ -78,7 +91,7 @@ def ui(conn_to_main):
                 if (key == 'title'):
                     mp.updateTitle(title=info[key])
                 if (key == 'thumbnailurl'):
-                    print(info[key])
+                    mp.updateThumbnail(url=info[key])
                 if (key == 'length'):
                     print(info[key])
                 if (key == 'artist'):
