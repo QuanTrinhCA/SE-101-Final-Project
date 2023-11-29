@@ -9,6 +9,7 @@ class App:
         self.root = root
         self.root.title("Smert")
         self.root.geometry("800x480")
+        self.root.overrideredirect(True)
 
         self.conn_to_main = conn_to_main
 
