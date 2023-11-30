@@ -21,6 +21,7 @@ if __name__ == '__main__':
     while True:
         if (emotion != '' and shouldnextsong):
             conn_to_audio_backend.send({'action': 'set_new_mood', 'mood': emotion})
+            conn_to_ui.send({'emotion': emotion})
             emotion = ''
             enddecting = False
             continue
