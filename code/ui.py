@@ -19,17 +19,34 @@ class App:
 
         self.create_widgets()
 
-    def updateEmo(self, emo):
-        self.emo_label.config(text="Detected emotion: " + emo)
-
     def updateTitle(self, title):
         self.song_name_label.config(text=title)
+
+    def updateArtist(self, artist):
+        self.song_artist_label.config(text=artist)
 
     def updateProgress(self, progress):
         self.progressbar.config(value=progress * 100)
 
     def changeProgress(self, value):
-        return
+        self.conn_to_main.send({'action': 'set_position',
+                           'position': value})
+    
+    def _fast_forward(self):
+        position = self.progressbar['value']
+        if position < 95:
+            position += 5
+        else:
+            position = 99.8
+        self.changeProgress(position / 100)
+    
+    def _fast_backward(self):
+        position = self.progressbar['value']
+        if position > 5:
+            position -= 5
+        else:
+            position = 0
+        self.changeProgress(position / 100)
     
     def updateThumbnail(self, url):
         # Load the image
@@ -55,6 +72,9 @@ class App:
 
     def unpauseAudio(self):
         self.conn_to_main.send({'action': 'unpause'})
+
+    def updateEmo(self, emo):
+        self.emo_label.config(text="Detected emotion: " + emo)
 
     def create_widgets(self):
 
@@ -86,7 +106,7 @@ class App:
         button_row_2 = tk.Frame(self.root)
         button_row_2.pack(padx=10, pady=10)
 
-        self.backward_button = tk.Button(button_row_1, text="Fast backward", width=10, padx=5, pady=5, font=("Arial", 14))
+        self.backward_button = tk.Button(button_row_1, text="Fast backward", command=self._fast_backward, width=10, padx=5, pady=5, font=("Arial", 14))
         self.backward_button.pack(side=tk.LEFT, padx=5)
 
         self.play_button = tk.Button(button_row_1, text="Play", command=self.unpauseAudio, width=10, padx=5, pady=5, font=("Arial", 14))
@@ -95,7 +115,7 @@ class App:
         self.pause_button = tk.Button(button_row_1, text="Pause", command=self.pauseAudio, width=10, padx=5, pady=5, font=("Arial", 14))
         self.pause_button.pack(side=tk.LEFT, padx=5)
 
-        self.forward_button = tk.Button(button_row_1, text="Fast forward", width=10, padx=5, pady=5, font=("Arial", 14))
+        self.forward_button = tk.Button(button_row_1, text="Fast forward", command=self._fast_forward, width=10, padx=5, pady=5, font=("Arial", 14))
         self.forward_button.pack(side=tk.LEFT, padx=5)
 
         self.next_button = tk.Button(button_row_2, text="Next", command=self.nextSong, width=8, padx=5, pady=5, font=("Arial", 12))
@@ -128,7 +148,7 @@ def ui(conn_to_main):
                 if (key == 'length'):
                     print(info[key])
                 if (key == 'artist'):
-                    print(info[key])
+                    mp.updateArtist(artist=info[key])
                 if (key == 'volume'):
                     mp.updateVolume(volume=info[key])
                 if (key == 'emotion'):
