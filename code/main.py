@@ -24,6 +24,7 @@ if __name__ == '__main__':
             conn_to_ui.send({'emotion': emotion})
             emotion = ''
             enddecting = False
+            shouldnextsong = False
             continue
                 
         # Receiving info
@@ -36,7 +37,7 @@ if __name__ == '__main__':
                     if (position > 0.9 and enddecting == False):
                         conn_to_emotion_detection.send({'action': 'get_emotion'})
                         enddecting = True
-                    if (position == -1 or position == 1):
+                    if (position == -1 or position == 1 or 1 - position < 0.0025):
                         shouldnextsong = True
                     sending_info['position'] = position
                 if (key == 'title'):

@@ -98,6 +98,8 @@ def audio_backend(conn_to_main):
                 backend.get_audio_stream()
                 backend.play_audio_stream()
 
+                backend.prevposition = 0
+
                 # Send to main song info
                 conn_to_main.send({'title': backend.song['title'], 
                                    'thumbnailurl': backend.song['thumbnails'][0]['url'], 
