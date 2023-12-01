@@ -1,8 +1,10 @@
 import os
+import random
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageColor
 import requests
+import time
 
 class App:
     def __init__(self, root, conn_to_main):
@@ -16,6 +18,10 @@ class App:
         image = Image.open(os.path.dirname(os.path.realpath(__file__)) + "\\not_loaded.gif")  # Replace "music_icon.png" with your image file
         image = image.resize((300, 300))
         self.photo = ImageTk.PhotoImage(image)
+
+        self.emotion = ''
+        self.currentcolor = '#FFFFFF'
+        self.time = time.time()
 
         self.create_widgets()
 
@@ -74,7 +80,91 @@ class App:
         self.conn_to_main.send({'action': 'unpause'})
 
     def updateEmo(self, emo):
+        self.emotion = emo
         self.emo_label.config(text="Detected emotion: " + emo)
+
+    def updateEmoColor(self):
+        step = 5
+
+        target = {'R': 255, 'G': 255, 'B': 255}
+        if self.emotion == 'sad':
+            target['R'] = 100
+            target['G'] = 100
+            target['B'] = 100 #Greyish
+        elif self.emotion == 'happy':
+            target['R'] = 238
+            target['G'] = 173
+            target['B'] = 34 #yellowish
+        elif self.emotion == 'neutral':
+            target['R'] = 190
+            target['G'] = 190
+            target['B'] = 190 #white/gray
+        elif self.emotion == 'surprise':
+            target['R'] = 107
+            target['G'] = 142
+            target['B'] = 35 #Greenish / olive green
+        elif self.emotion == 'angry':
+            target['R'] = 255
+            target['G'] = 40
+            target['B'] = 40 #Red
+        elif self.emotion == 'disgust':
+            target['R'] = 255
+            target['G'] = 218
+            target['B'] = 185 #Brownish
+        elif self.emotion == 'fear':
+            target['R'] = 255
+            target['G'] = 130
+            target['B'] = 170 #Pink
+            
+        rgb = list(ImageColor.getrgb(self.currentcolor))
+            
+        # Red
+        if (rgb[0] - target['R'] > 70):
+            rgb[0] -= random.randint(1, step)
+        elif (target['R'] - rgb[0] > 70):
+            rgb[0] += random.randint(1, step)
+        else:
+            rgb[0] += random.randint(-step, step)
+        if (rgb[0] > 255):
+            rgb[0] -= step
+        elif (rgb[0] < 0):
+            rgb[0] += step
+        # Green
+        if (rgb[1] - target['G'] > 70):
+            rgb[1] -= random.randint(1, step)
+        elif (target['G'] - rgb[2] > 70):
+            rgb[1] += random.randint(1, step)
+        else:
+            rgb[1] += random.randint(-step, step)
+        if (rgb[1] > 255):
+            rgb[1] -= step
+        elif (rgb[1] < 0):
+            rgb[1] += step
+        # Blue
+        if (rgb[2] - target['B'] > 70):
+            rgb[2] -= random.randint(1, step)
+        elif (target['B'] - rgb[2] > 70):
+            rgb[2] += random.randint(1, step)
+        else:
+            rgb[2] += random.randint(-step, step)
+        if (rgb[2] > 255):
+            rgb[2] -= step
+        elif (rgb[2] < 0):
+            rgb[2] += step
+
+        self.currentcolor = '#%02x%02x%02x' % (rgb[0], rgb[1], rgb[2])
+
+    def updateBackgroud(self):
+        self.root.config(bg=self.currentcolor)
+        self.image_label.config(bg=self.currentcolor)
+        self.song_name_label.config(bg=self.currentcolor)
+        self.song_artist_label.config(bg=self.currentcolor)
+        self.button_row_1.config(bg=self.currentcolor)
+        self.button_row_2.config(bg=self.currentcolor)
+        self.emo_label.config(bg=self.currentcolor)
+        style = ttk.Style()
+        style.configure('Vertical.TScale', background=self.currentcolor)
+        style.configure('Horizontal.TProgressbar', background=self.currentcolor)
 
     def create_widgets(self):
 
@@ -100,31 +190,31 @@ class App:
         self.progressbar.pack(padx=10, pady=10)
 
         # Create buttons
-        button_row_1 = tk.Frame(self.root)
-        button_row_1.pack(padx=10, pady=10)
+        self.button_row_1 = tk.Frame(self.root)
+        self.button_row_1.pack(padx=10, pady=10)
 
-        button_row_2 = tk.Frame(self.root)
-        button_row_2.pack(padx=10, pady=10)
+        self.button_row_2 = tk.Frame(self.root)
+        self.button_row_2.pack(padx=10, pady=10)
 
-        self.backward_button = tk.Button(button_row_1, text="Fast backward", command=self._fast_backward, width=10, padx=5, pady=5, font=("Arial", 14))
+        self.backward_button = tk.Button(self.button_row_1, text="Fast backward", command=self._fast_backward, width=10, padx=5, pady=5, font=("Arial", 14))
         self.backward_button.pack(side=tk.LEFT, padx=5)
 
-        self.play_button = tk.Button(button_row_1, text="Play", command=self.unpauseAudio, width=10, padx=5, pady=5, font=("Arial", 14))
+        self.play_button = tk.Button(self.button_row_1, text="Play", command=self.unpauseAudio, width=10, padx=5, pady=5, font=("Arial", 14))
         self.play_button.pack(side=tk.LEFT, padx=5)
 
-        self.pause_button = tk.Button(button_row_1, text="Pause", command=self.pauseAudio, width=10, padx=5, pady=5, font=("Arial", 14))
+        self.pause_button = tk.Button(self.button_row_1, text="Pause", command=self.pauseAudio, width=10, padx=5, pady=5, font=("Arial", 14))
         self.pause_button.pack(side=tk.LEFT, padx=5)
 
-        self.forward_button = tk.Button(button_row_1, text="Fast forward", command=self._fast_forward, width=10, padx=5, pady=5, font=("Arial", 14))
+        self.forward_button = tk.Button(self.button_row_1, text="Fast forward", command=self._fast_forward, width=10, padx=5, pady=5, font=("Arial", 14))
         self.forward_button.pack(side=tk.LEFT, padx=5)
 
-        self.next_button = tk.Button(button_row_2, text="Next", command=self.nextSong, width=8, padx=5, pady=5, font=("Arial", 12))
+        self.next_button = tk.Button(self.button_row_2, text="Next", command=self.nextSong, width=8, padx=5, pady=5, font=("Arial", 12))
         self.next_button.pack(side=tk.LEFT, padx=5)
 
-        self.like_button = tk.Button(button_row_2, text="Like", width=8, padx=5, pady=5, font=("Arial", 12))
+        self.like_button = tk.Button(self.button_row_2, text="Like", width=8, padx=5, pady=5, font=("Arial", 12))
         self.like_button.pack(side=tk.LEFT, padx=5)
 
-        self.dislike_button = tk.Button(button_row_2, text="Dislike", width=8, padx=5, pady=5, font=("Arial", 12))
+        self.dislike_button = tk.Button(self.button_row_2, text="Dislike", width=8, padx=5, pady=5, font=("Arial", 12))
         self.dislike_button.pack(side=tk.LEFT, padx=5)
 
         # Create status label
@@ -136,6 +226,10 @@ def ui(conn_to_main):
     mp = App(root=root, conn_to_main=conn_to_main)
     root.update()
     while True:
+        if (not mp.emotion == '' and time.time() - mp.time > 0.5):
+            mp.time = time.time()
+            mp.updateEmoColor()
+            mp.updateBackgroud()
         if conn_to_main.poll():
             info = conn_to_main.recv()
             for key in info:
