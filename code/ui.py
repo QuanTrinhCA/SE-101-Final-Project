@@ -68,7 +68,6 @@ class App:
         volume = round(float(value))       
         self.conn_to_main.send({'action': 'set_volume',
                                 'volume': volume})
-        print(volume)
 
     def nextSong(self):
         self.conn_to_main.send({'action': 'next_song'})
