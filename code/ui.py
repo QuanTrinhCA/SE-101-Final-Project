@@ -22,6 +22,7 @@ class App:
         self.emotion = ''
         self.currentcolor = '#FFFFFF'
         self.time = time.time()
+        self.length = 0
 
         self.create_widgets()
 
@@ -239,7 +240,7 @@ def ui(conn_to_main):
                 if (key == 'thumbnailurl'):
                     mp.updateThumbnail(url=info[key])
                 if (key == 'length'):
-                    print(info[key])
+                    mp.length = info[key]
                 if (key == 'artist'):
                     mp.updateArtist(artist=info[key])
                 if (key == 'volume'):
