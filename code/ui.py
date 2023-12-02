@@ -25,6 +25,7 @@ class App:
         self.photo = ImageTk.PhotoImage(image)
 
         self.emotion = ''
+        self.title = ''
         self.currentcolor = '#FFFFFF'
         self.time = time.time()
         self.length = 0
@@ -33,6 +34,7 @@ class App:
 
     def updateTitle(self, title):
         self.song_name_label.config(text=title)
+        self.title = title
 
     def updateArtist(self, artist):
         self.song_artist_label.config(text=artist)
@@ -77,6 +79,8 @@ class App:
 
     def nextSong(self):
         self.conn_to_main.send({'action': 'next_song'})
+        self.title = ''
+        self.emotion = ''
 
     def pauseAudio(self):
         self.conn_to_main.send({'action': 'pause'})
@@ -171,6 +175,16 @@ class App:
         style.configure('Vertical.TScale', background=self.currentcolor)
         style.configure('Horizontal.TProgressbar', background=self.currentcolor)
 
+    def liked(self):
+        if (self.title == '' or self.emotion == ''):
+            return
+        self.conn_to_main.send({'action': 'feedbacked', 'isLiked': True, 'emotion': self.emotion})
+
+    def hated(self):
+        if (self.title == '' or self.emotion == ''):
+            return
+        self.conn_to_main.send({'action': 'feedbacked', 'isLiked': False, 'emotion': self.emotion})
+
     def create_widgets(self):
 
         self.volume_slider = ttk.Scale(self.root, from_=100, to=0, value=100, command=self.changeVolume, orient="vertical", length=400)
@@ -216,10 +230,10 @@ class App:
         self.next_button = tk.Button(self.button_row_2, text="Next", command=self.nextSong, width=8, padx=5, pady=5, font=("Arial", 12))
         self.next_button.pack(side=tk.LEFT, padx=5)
 
-        self.like_button = tk.Button(self.button_row_2, text="Like", width=8, padx=5, pady=5, font=("Arial", 12))
+        self.like_button = tk.Button(self.button_row_2, text="Like", command=self.liked, width=8, padx=5, pady=5, font=("Arial", 12))
         self.like_button.pack(side=tk.LEFT, padx=5)
 
-        self.dislike_button = tk.Button(self.button_row_2, text="Dislike", width=8, padx=5, pady=5, font=("Arial", 12))
+        self.dislike_button = tk.Button(self.button_row_2, text="Dislike", command=self.hated, width=8, padx=5, pady=5, font=("Arial", 12))
         self.dislike_button.pack(side=tk.LEFT, padx=5)
 
         # Create status label

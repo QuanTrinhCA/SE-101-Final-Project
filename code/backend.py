@@ -1,17 +1,14 @@
-import vlc, ytmusicapi, yt_dlp, random
+import vlc, ytmusicapi, yt_dlp, random, json, time
 
-# with ytmusicapi.YTMusic() as ytmusic:
-#     test = ytmusic.get_mood_categories()
-#     print(test)
-
-class AudioBackend:
-    def __init__(self, conn_to_main):
+class Backend:
+    def __init__(self):
         self.player = vlc.MediaPlayer()
         self.prevposition = 0
         self.ispause = True
         self.song = ''
         self.songinfo = ''
         self.audiourl = ''
+        self.time = time.time()
 
     def find_song_based_on_mood(self, mood):
         mood_index = 0
@@ -34,10 +31,6 @@ class AudioBackend:
             luckyplaylist = ytmusic.get_playlist(playlistId=playlistlist[random.randint(0,len(playlistlist) - 1)]['playlistId'])
             luckysong = luckyplaylist['tracks'][random.randint(0, len(luckyplaylist['tracks']) - 1)]
         self.song = luckysong
-    
-    # def get_song_info(self, name):
-    #     with ytmusicapi.YTMusic() as ytmusic:
-    #         self.songinfo = ytmusic.get_song(ytmusic.search(query=name, filter="songs")[0])
 
     def get_audio_stream(self):
         ydl_opts = {
@@ -77,8 +70,28 @@ class AudioBackend:
     def set_stream_position(self, position):
         self.player.set_position(position)
 
-def audio_backend(conn_to_main):
-    backend = AudioBackend(conn_to_main=conn_to_main)
+    def save_current_song_for_analyzing(self, emotion, isLiked):
+        data = {}
+
+        try:
+            with open('song_data.json', 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except Exception as e:
+            pass
+
+        data[self.song['videoId']] = {'isLiked': isLiked,
+                                      'emotion': emotion,
+                                      'listened_percentage': self.get_stream_position(),
+                                      'time_spent': time.time() - self.time}
+        
+        try:
+            with open('song_data.json', 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            pass
+
+def backend(conn_to_main):
+    backend = Backend()
     while True:
         # Sending info
         currentposition = backend.get_stream_position()
@@ -97,6 +110,7 @@ def audio_backend(conn_to_main):
                 backend.find_song_based_on_mood(order['mood'])
                 backend.get_audio_stream()
                 backend.play_audio_stream()
+                backend.time = time.time()
 
                 backend.prevposition = 0
 
@@ -110,3 +124,5 @@ def audio_backend(conn_to_main):
                 backend.set_audio_stream_volume(volume=order['volume'])
             elif (order['action'] == 'set_position'):
                 backend.set_stream_position(order['position'])
+            elif (order['action'] == 'feedbacked'):
+                backend.save_current_song_for_analyzing(emotion=order['emotion'], isLiked=order['isLiked'])

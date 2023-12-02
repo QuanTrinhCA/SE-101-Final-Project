@@ -1,5 +1,5 @@
 from multiprocessing import Process, Pipe
-from backend import audio_backend
+from backend import backend
 from emotiondection import emotion_detect
 from ui import ui
 
@@ -7,8 +7,8 @@ if __name__ == '__main__':
     conn_to_ui,conn_to_main = Pipe()
     backend_process = Process(target=ui, args=(conn_to_main,))
     backend_process.start()
-    conn_to_audio_backend,conn_to_main = Pipe()
-    backend_process = Process(target=audio_backend, args=(conn_to_main,))
+    conn_to_backend,conn_to_main = Pipe()
+    backend_process = Process(target=backend, args=(conn_to_main,))
     backend_process.start()
     conn_to_emotion_detection,conn_to_main = Pipe()
     backend_process = Process(target=emotion_detect, args=(conn_to_main,))
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     shouldnextsong = True
     while True:
         if (emotion != '' and shouldnextsong):
-            conn_to_audio_backend.send({'action': 'set_new_mood', 'mood': emotion})
+            conn_to_backend.send({'action': 'set_new_mood', 'mood': emotion})
             conn_to_ui.send({'emotion': emotion})
             emotion = ''
             enddecting = False
@@ -28,8 +28,8 @@ if __name__ == '__main__':
             continue
                 
         # Receiving info
-        if conn_to_audio_backend.poll():
-            info = conn_to_audio_backend.recv()
+        if conn_to_backend.poll():
+            info = conn_to_backend.recv()
             sending_info = {}
             for key in info:
                 if (key == 'position'):
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         if conn_to_ui.poll():
             order = conn_to_ui.recv()
             if (order['action'] == 'next_song'):
-                conn_to_audio_backend.send({'action': 'pause'})
+                conn_to_backend.send({'action': 'pause'})
                 conn_to_emotion_detection.send({'action': 'get_emotion'})
                 enddecting = True
                 shouldnextsong = True
@@ -68,4 +68,7 @@ if __name__ == '__main__':
                 sending_info['volume'] = order['volume']
             elif (order['action'] == 'set_position'):
                 sending_info['position'] = order['position']
-            conn_to_audio_backend.send(sending_info)
+            elif (order['action'] == 'feedbacked'):
+                sending_info['emotion'] = order['emotion']
+                sending_info['isLiked'] = order['isLiked']
+            conn_to_backend.send(sending_info)
