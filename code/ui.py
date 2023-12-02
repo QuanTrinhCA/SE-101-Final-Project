@@ -15,8 +15,13 @@ class App:
 
         self.conn_to_main = conn_to_main
 
-        image = Image.open(os.path.dirname(os.path.realpath(__file__)) + "\\not_loaded.gif")  # Replace "music_icon.png" with your image file
-        image = image.resize((300, 300))
+        file_dir = "not_loaded.gif"
+        if os.name == 'nt':
+            file_dir = "\\" + file_dir
+        elif os.name == 'posix':
+            file_dir = "/" + file_dir
+        image = Image.open(os.path.dirname(os.path.realpath(__file__)) + file_dir)  # Replace "music_icon.png" with your image file
+        image = image.resize((300, 150))
         self.photo = ImageTk.PhotoImage(image)
 
         self.emotion = ''

@@ -6,7 +6,12 @@ from deepface import DeepFace
 def emotion_detect(conn_to_main):
     # Classifier gives (x,y), width and height
     face_classifier = cv2.CascadeClassifier()
-    face_classifier.load(cv2.samples.findFile(os.path.dirname(os.path.realpath(__file__)) + "\haarcascade_frontalface_default.xml"))
+    file_dir = "haarcascade_frontalface_default.xml"
+    if os.name == 'nt':
+        file_dir = "\\" + file_dir
+    elif os.name == 'posix':
+        file_dir = "/" + file_dir
+    face_classifier.load(cv2.samples.findFile(os.path.dirname(os.path.realpath(__file__)) + file_dir))
 
     # Capture video source (laptop webcam, external webcam, etc)
     cap = cv2.VideoCapture(0)
