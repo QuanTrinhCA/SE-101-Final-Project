@@ -68,6 +68,7 @@ class Backend:
         return self.player.get_position()
     
     def set_stream_position(self, position):
+        self.prevposition = position
         self.player.set_position(position)
 
     def save_current_song_for_analyzing(self, emotion, isLiked):

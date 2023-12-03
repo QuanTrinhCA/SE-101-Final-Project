@@ -44,25 +44,25 @@ class App:
     def updateProgress(self):
         self.progressbar.config(value=self.progress * 100)
 
-    def changeProgress(self, value):
+    def _change_progress(self, value):
         self.conn_to_main.send({'action': 'set_position',
                            'position': value})
     
     def _fast_forward(self):
-        position = self.progressbar['value']
-        if position < 95:
-            position += 5
+        if self.progress < 0.95:
+            self.progress += 0.05
         else:
-            position = 99.8
-        self.changeProgress(position / 100)
+            self.progress = 0.99
+        self.updateProgress()
+        self._change_progress(self.progress)
     
     def _fast_backward(self):
-        position = self.progressbar['value']
-        if position > 5:
-            position -= 5
+        if self.progress > 0.05:
+            self.progress -= 0.05
         else:
-            position = 0
-        self.changeProgress(position / 100)
+            self.progress = 0
+        self.updateProgress()
+        self._change_progress(self.progress)
     
     def updateThumbnail(self, url):
         # Load the image
@@ -194,6 +194,7 @@ class App:
         self.song_name_label.config(text="Loading")
         if (self.emotion == ''):
             self.emo_label.config(text="Detected Emotion: Loading")
+        self.progressbar.config(value=0)
 
     def create_widgets(self):
 
