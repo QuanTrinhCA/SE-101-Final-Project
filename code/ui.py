@@ -22,8 +22,9 @@ class App:
             file_dir = "/" + file_dir
         image = Image.open(os.path.dirname(os.path.realpath(__file__)) + file_dir)  # Replace "music_icon.png" with your image file
         image = image.resize((300, 150))
-        self.photo = ImageTk.PhotoImage(image)
+        self.loading_photo = ImageTk.PhotoImage(image)
 
+        self.progress = 0
         self.emotion = ''
         self.title = ''
         self.currentcolor = '#FFFFFF'
@@ -31,6 +32,7 @@ class App:
         self.length = 0
 
         self.create_widgets()
+        self.updateLoading()
 
     def updateTitle(self, title):
         self.song_name_label.config(text=title)
@@ -39,8 +41,8 @@ class App:
     def updateArtist(self, artist):
         self.song_artist_label.config(text=artist)
 
-    def updateProgress(self, progress):
-        self.progressbar.config(value=progress * 100)
+    def updateProgress(self):
+        self.progressbar.config(value=self.progress * 100)
 
     def changeProgress(self, value):
         self.conn_to_main.send({'action': 'set_position',
@@ -81,6 +83,7 @@ class App:
         self.conn_to_main.send({'action': 'next_song'})
         self.title = ''
         self.emotion = ''
+        self.updateLoading()
 
     def pauseAudio(self):
         self.conn_to_main.send({'action': 'pause'})
@@ -185,20 +188,27 @@ class App:
             return
         self.conn_to_main.send({'action': 'feedbacked', 'isLiked': False, 'emotion': self.emotion})
 
+    def updateLoading(self):
+        self.image_label.config(image=self.loading_photo)
+        self.song_artist_label.config(text="Loading")
+        self.song_name_label.config(text="Loading")
+        if (self.emotion == ''):
+            self.emo_label.config(text="Detected Emotion: Loading")
+
     def create_widgets(self):
 
         self.volume_slider = ttk.Scale(self.root, from_=100, to=0, value=100, command=self.changeVolume, orient="vertical", length=400)
         self.volume_slider.pack(side=tk.RIGHT, padx=15, pady=10)
 
         # Display the image at the top
-        self.image_label = tk.Label(self.root, image=self.photo)
+        self.image_label = tk.Label(self.root)
         self.image_label.pack(pady=10)
 
         # Text label for song name
-        self.song_name_label = tk.Label(self.root, text="YOUR MOM", font=("Arial", 25))
+        self.song_name_label = tk.Label(self.root, text="Loading", font=("Arial", 25))
         self.song_name_label.pack(pady=5)
 
-        self.song_artist_label = tk.Label(self.root, text="Test", font=("Arial", 20))
+        self.song_artist_label = tk.Label(self.root, text="Loading", font=("Arial", 20))
         self.song_artist_label.pack(pady=5)  # Adjusting vertical padding and anchoring to the left
 
         self.progressbar = ttk.Progressbar(self.root,
@@ -237,7 +247,7 @@ class App:
         self.dislike_button.pack(side=tk.LEFT, padx=5)
 
         # Create status label
-        self.emo_label = tk.Label(self.root, text="Detected emotion:")
+        self.emo_label = tk.Label(self.root)
         self.emo_label.pack(side=tk.BOTTOM, pady=10)
 
 def ui(conn_to_main):
@@ -245,6 +255,8 @@ def ui(conn_to_main):
     mp = App(root=root, conn_to_main=conn_to_main)
     root.update()
     while True:
+        if (1 - mp.progress < 0.005):
+            mp.updateLoading()
         if (not mp.emotion == '' and time.time() - mp.time > 0.5):
             mp.time = time.time()
             mp.updateEmoColor()
@@ -253,7 +265,8 @@ def ui(conn_to_main):
             info = conn_to_main.recv()
             for key in info:
                 if (key == 'position'):
-                    mp.updateProgress(progress=info[key])
+                    mp.progress = info[key]
+                    mp.updateProgress()
                 if (key == 'title'):
                     mp.updateTitle(title=info[key])
                 if (key == 'thumbnailurl'):
