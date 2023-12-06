@@ -7,6 +7,7 @@ import requests
 import time
 
 class App:
+    # Initialize the UI and all required files
     def __init__(self, root, conn_to_main):
         self.root = root
         self.root.title("Smert")
@@ -15,6 +16,7 @@ class App:
 
         self.conn_to_main = conn_to_main
 
+        # Load the not loaded image
         file_dir = "not_loaded.gif"
         if os.name == 'nt':
             file_dir = "\\" + file_dir
@@ -95,9 +97,11 @@ class App:
         self.emotion = emo
         self.emo_label.config(text="Detected emotion: " + emo)
 
+    # Dynamic lighting implementation
     def updateEmoColor(self):
         step = 5
 
+        # Set target color based on emo
         target = {'R': 255, 'G': 255, 'B': 255}
         if self.emotion == 'sad':
             target['R'] = 100
@@ -129,7 +133,8 @@ class App:
             target['B'] = 170 #Pink
             
         rgb = list(ImageColor.getrgb(self.currentcolor))
-            
+        
+        # Pulsing
         # Red
         if (rgb[0] - target['R'] > 70):
             rgb[0] -= random.randint(1, step)
@@ -166,6 +171,7 @@ class App:
 
         self.currentcolor = '#%02x%02x%02x' % (rgb[0], rgb[1], rgb[2])
 
+    # Actually changes the color
     def updateBackgroud(self):
         self.root.config(bg=self.currentcolor)
         self.image_label.config(bg=self.currentcolor)
@@ -196,6 +202,7 @@ class App:
             self.emo_label.config(text="Detected Emotion: Loading")
         self.progressbar.config(value=0)
 
+    # Making the entire UI
     def create_widgets(self):
 
         self.volume_slider = ttk.Scale(self.root, from_=100, to=0, value=100, command=self.changeVolume, orient="vertical", length=400)
@@ -255,13 +262,17 @@ def ui(conn_to_main):
     root = tk.Tk()
     mp = App(root=root, conn_to_main=conn_to_main)
     root.update()
+    # IMPORT WHILE FOR UPDATING THE UI ELEMENTS AND RECEIVING + SENDING INFO
     while True:
         if (1 - mp.progress < 0.005):
+            # Change UI to loading state when song ends
             mp.updateLoading()
         if (not mp.emotion == '' and time.time() - mp.time > 0.5):
             mp.time = time.time()
+            # Update color
             mp.updateEmoColor()
             mp.updateBackgroud()
+        # Receiving info
         if conn_to_main.poll():
             info = conn_to_main.recv()
             for key in info:
@@ -280,4 +291,5 @@ def ui(conn_to_main):
                     mp.updateVolume(volume=info[key])
                 if (key == 'emotion'):
                     mp.updateEmo(emo=info[key])
+        # Update UI
         root.update()
