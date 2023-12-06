@@ -4,20 +4,25 @@ from emotiondection import emotion_detect
 from ui import ui
 
 if __name__ == '__main__':
+    # Start UI module
     conn_to_ui,conn_to_main = Pipe()
     backend_process = Process(target=ui, args=(conn_to_main,))
     backend_process.start()
+    # Start backend module
     conn_to_backend,conn_to_main = Pipe()
     backend_process = Process(target=backend, args=(conn_to_main,))
     backend_process.start()
+    # Start emo dection module
     conn_to_emotion_detection,conn_to_main = Pipe()
     backend_process = Process(target=emotion_detect, args=(conn_to_main,))
     backend_process.start()
+    # Init emo check
     conn_to_emotion_detection.send({'action': 'get_emotion'})
     emotion = ''
     position = -1
     enddecting = False
     shouldnextsong = True
+    # Very very important while loop to send and receive + process info
     while True:
         if (emotion != '' and shouldnextsong):
             conn_to_backend.send({'action': 'set_new_mood', 'mood': emotion})
