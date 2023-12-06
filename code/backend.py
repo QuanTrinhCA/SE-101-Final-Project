@@ -1,6 +1,7 @@
 import vlc, ytmusicapi, yt_dlp, random, json, time
 
 class Backend:
+    # Initialize the backend
     def __init__(self):
         self.player = vlc.MediaPlayer()
         self.prevposition = 0
@@ -10,6 +11,7 @@ class Backend:
         self.audiourl = ''
         self.time = time.time()
 
+    # Assign emotion to playlist and get a song from playlist
     def find_song_based_on_mood(self, mood):
         mood_index = 0
         with ytmusicapi.YTMusic() as ytmusic:
@@ -32,6 +34,7 @@ class Backend:
             luckysong = luckyplaylist['tracks'][random.randint(0, len(luckyplaylist['tracks']) - 1)]
         self.song = luckysong
 
+    # Get the audo stream url from the videoId to feed to vlc to stream music
     def get_audio_stream(self):
         ydl_opts = {
             'extractor_args': {
@@ -46,31 +49,38 @@ class Backend:
                 if format['format_id'] == '251':
                     self.audiourl = format['url']
 
+    # Assign the audio stream url to the vlc and play it
     def play_audio_stream(self):
         self.player.set_mrl(self.audiourl)
         self.player.play()
         self.ispause = False
 
+    # Pauses
     def pause_audio_stream(self):
         if not self.ispause:
             self.player.pause()
             self.ispause = True
 
+    # Unpauses
     def unpause_audio_stream(self):
         if self.ispause:
             self.player.pause()
             self.ispause = False
 
+    # Change volume
     def set_audio_stream_volume(self, volume):
         self.player.audio_set_volume(volume)
 
+    # Get position of audio
     def get_stream_position(self):
         return self.player.get_position()
     
+    # Set position of audio (fast backward/forward)
     def set_stream_position(self, position):
         self.prevposition = position
         self.player.set_position(position)
 
+    # Save feedbacked song to JSON file for future analysis
     def save_current_song_for_analyzing(self, emotion, isLiked):
         data = {}
 
@@ -93,6 +103,7 @@ class Backend:
 
 def backend(conn_to_main):
     backend = Backend()
+    # Very important while loop to send and receive info
     while True:
         # Sending info
         currentposition = backend.get_stream_position()
