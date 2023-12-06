@@ -16,6 +16,7 @@ def emotion_detect(conn_to_main):
     # Capture video source (laptop webcam, external webcam, etc)
     cap = cv2.VideoCapture(0)
 
+    # Bigus while loop for sending and receiving info
     while True:
         if (conn_to_main.poll()):
             order = conn_to_main.recv()
